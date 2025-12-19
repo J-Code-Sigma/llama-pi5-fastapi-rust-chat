@@ -41,7 +41,7 @@ async fn chat(
 
     let response_text = match resp_result {
         Ok(resp) => match resp.json::<serde_json::Value>().await {
-            Ok(json) => json.to_string(),
+            Ok(json) => json["response"].as_str().unwrap_or("No response field found").to_string(),
             Err(_) => "Invalid response from Ollama".to_string(),
         },
         Err(_) => "Failed to contact Ollama".to_string(),

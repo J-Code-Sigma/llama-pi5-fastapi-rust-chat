@@ -29,7 +29,7 @@ async def chat(request: ChatRequest):
             resp.raise_for_status()
             data = resp.json()
             logger.info(f"Rust API response data: {data}")
-            return {"response": data}
+            return data
     except httpx.HTTPStatusError as e:
         logger.error(f"HTTPStatusError: {e.response.status_code} - {e.response.text}")
         raise HTTPException(status_code=e.response.status_code, detail=e.response.text)

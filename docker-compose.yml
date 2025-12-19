@@ -8,7 +8,7 @@ volumes:
 services:
   fastapi:
     build:
-      context: ./FastAPI
+      context: ./server/FastAPI
     ports:
       - "8000:8000"
     environment:
@@ -20,7 +20,7 @@ services:
 
   rust-api:
     build:
-      context: ./RUST_TAURI/ollama_server
+      context: ./server/RUST_TAURI/ollama_server
     ports:
       - "8080:8080"
     environment:
