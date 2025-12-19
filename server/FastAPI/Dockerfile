@@ -2,9 +2,9 @@ FROM python:3.12-slim
 
 WORKDIR /app
 
-COPY fastAPI.py /app/
+COPY *.py /app/
 
-RUN pip install --no-cache-dir fastapi uvicorn httpx
+RUN pip install --no-cache-dir fastapi uvicorn httpx better-profanity "llm-guard[all]"
 
 EXPOSE 8000
 

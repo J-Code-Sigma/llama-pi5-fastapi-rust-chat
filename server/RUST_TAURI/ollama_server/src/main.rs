@@ -34,6 +34,7 @@ async fn chat(
         .json(&serde_json::json!({
             "model": "tinyllama",
             "prompt": body.prompt,
+            "system": "You are a helpful, harmless, and honest assistant. You must refuse to provide information on illegal activities, dangerous substances, hate speech, or sexually explicit content. If you are unsure if a request is safe, err on the side of caution and decline politely.",
             "stream": false
         }))
         .send()
