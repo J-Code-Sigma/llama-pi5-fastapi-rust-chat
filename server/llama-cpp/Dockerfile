@@ -6,6 +6,7 @@ RUN apt-get update && apt-get install -y \
     git \
     cmake \
     curl \
+    libcurl4-openssl-dev \
     && \
     rm -rf /var/lib/apt/lists/*
 
@@ -25,6 +26,7 @@ FROM debian:bookworm-slim
 RUN apt-get update && apt-get install -y \
     curl \
     ca-certificates \
+    libcurl4 \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /
