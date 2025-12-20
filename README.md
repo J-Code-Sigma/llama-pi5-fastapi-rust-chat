@@ -60,23 +60,29 @@ graph LR
 }
 ```
 
-## Component Details
+## Content Moderation & Refusal Logic
 
-### 1. FastAPI Service (`server/FastAPI`)
-- **Port**: 8000
-- **Responsibility**: Security and filtering.
-- **Safety**: Uses a fast keyword filter followed by `llm-guard` for deep prompt scan (Injection/Toxicity).
+This project implements a multi-layered safety and moderation system. Refusals happen at two distinct stages:
 
-### 2. Rust Service (`server/RUST_TAURI`)
-- **Port**: 8080
-- **Feature**: Strictly serializes requests to protect CPU/RAM on hardware like the Raspberry Pi.
-- **Health Check**: Automatically waits for the LLM model to finish loading before opening the API.
+### 1. Hard Refusal (Pre-Inference)
+Handled by **FastAPI**, if a prompt is blocked here, it **never reaches the LLM**. The API returns a `200 OK` with a JSON response containing a "refusal message".
 
-### 3. llama.cpp Service
-- **Port**: 11434
-- **Model**: `Llama-3.2-1B-Instruct`
-- **Optimization**: Compiled natively with `GGML_NATIVE=ON`. Memory usage is capped (`-c 2048`) to ensure stability on devices with 4GB-8GB RAM.
-- **Build**: Built from source via a multi-stage Dockerfile located in `server/llama-cpp/`.
+- **Default Message**: "The prompt contains content that is not allowed. I cannot assist with topics related to restricted content."
+- **Customization**: The client can send a `refusal_message` in the request body to override this default.
+- **Triggers**:
+    - **Keyword Filter**: Checks against a list of profanity and blocked words.
+    - **LLM-Guard**: Uses specialized mini-models (DeBERTa) to detect Prompt Injection and Toxicity.
+
+### 2. Soft Refusal (In-Inference)
+Handled by the **LLM** itself via instructions injected by the **Rust Middleware**.
+
+- **Instruction Source**: The `server/RUST_TAURI/ollama_server/topics.txt` file.
+- **Mechanism**: The Rust service reads `topics.txt` and wraps it into a **System Prompt**. It instructs the AI: *"You stay strictly on these topics: [topics.txt contents]. If a user asks about other topics, you MUST state that you do not have access."*
+- **Effect**: The AI will generate a polite refusal message in its own voice if the user tries to talk about off-limit subjects.
+
+## Optimization Notes (Raspberry Pi 5)
+- **Native Build**: The `llama-server` is compiled from source inside the container to use ARM-specific instructions (NEON/FMA).
+- **RAM Management**: Context is limited to `2048` tokens (`-c 2048`) and the prompt cache is disabled (`--cache-ram 0`) to prevent OOM (Out of Memory) crashes while running alongside Python security models.
 
 ## License
 [MIT](LICENSE)
