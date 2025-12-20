@@ -6,7 +6,7 @@ use chrono::Local;
 use reqwest::Client;
 use tokio::time::{sleep, Duration};
 
-#[derive(Deserialize, Serialize)]
+#[derive(Deserialize, Serialize, Clone)]
 struct ChatMessage {
     role: String,
     content: String,
@@ -40,27 +40,43 @@ async fn chat(
     let topics = std::fs::read_to_string("topics.txt").unwrap_or_else(|_| "General assistance".to_string());
     let system_prompt = format!("You are a specialized AI assistant. You stay strictly on these topics: {}. If a user asks about other topics, you MUST state that you do not have access and cannot help with those. NEVER pretend to have information outside these topics. You also DO NOT HAVE ACCESS to user accounts, passwords, or personal data.", topics);
 
-    let mut payload = serde_json::json!({
-        "model": ollama_model,
-        "prompt": body.prompt,
-        "system": system_prompt,
-        "stream": false
+    let mut messages = Vec::new();
+    messages.push(ChatMessage {
+        role: "system".to_string(),
+        content: system_prompt,
     });
 
-    if let Some(messages) = &body.messages {
-        payload["messages"] = serde_json::json!(messages);
+    if let Some(history) = &body.messages {
+        messages.extend(history.iter().cloned());
+    } else {
+        messages.push(ChatMessage {
+            role: "user".to_string(),
+            content: body.prompt.clone(),
+        });
     }
-    println!("[{}] Sending to Ollama: {}", start_time.format("%H:%M:%S"), payload);
+
+    let payload = serde_json::json!({
+        "model": ollama_model,
+        "messages": messages,
+        "stream": false
+    });
+    println!("[{}] Sending to Ollama (via /api/chat): {}", start_time.format("%H:%M:%S"), payload);
 
     let resp_result = client
-        .post(format!("{}/api/generate", ollama_host))
+        .post(format!("{}/api/chat", ollama_host))
         .json(&payload)
         .send()
         .await;
 
     let response_text = match resp_result {
         Ok(resp) => match resp.json::<serde_json::Value>().await {
-            Ok(json) => json["response"].as_str().unwrap_or("No response field found").to_string(),
+            Ok(json) => {
+                // /api/chat returns response in message.content
+                json["message"]["content"]
+                    .as_str()
+                    .unwrap_or("No content field found in message")
+                    .to_string()
+            },
             Err(_) => "Invalid response from Ollama".to_string(),
         },
         Err(_) => "Failed to contact Ollama".to_string(),
