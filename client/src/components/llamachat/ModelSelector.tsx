@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { usellamacpp } from './llamacppProvider';
+import { useLlamacpp } from './LlamaProvider';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -12,7 +12,7 @@ import {
 import { Download, RefreshCw } from 'lucide-react';
 
 export const ModelSelector: React.FC = () => {
-  const { models, selectedModel, selectModel, downloadModel, fetchModels, isLoading } = usellamacpp();
+  const { models, selectedModel, selectModel, downloadModel, fetchModels, isLoading } = useLlamacpp();
   const [customModel, setCustomModel] = useState('');
 
   const handleDownload = async () => {
