@@ -34,7 +34,7 @@ services:
       - ./server/RUST_TAURI/ollama_server/topics.txt:/app/topics.txt
 
   llama-cpp:
-    image: ghcr.io/ggerganov/llama.cpp:server
+    image: ghcr.io/ggml-org/llama.cpp:server
     ports:
       - "11434:11434"
     networks:
