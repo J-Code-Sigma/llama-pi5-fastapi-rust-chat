@@ -34,9 +34,9 @@ services:
       - ./server/RUST_TAURI/ollama_server/topics.txt:/app/topics.txt
 
   llama-cpp:
-    image: ghcr.io/ggml-org/llama.cpp:server
+    build:
+      context: ./server/llama-cpp
     platform: linux/arm64
-    pull_policy: always
     ports:
       - "11434:11434"
     networks:
