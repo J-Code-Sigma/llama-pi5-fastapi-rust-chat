@@ -76,6 +76,39 @@ graph LR
 }
 ```
 
+
+
+## Topic Control via `RUST/topics.txt` (Important)
+
+This project includes **explicit topic-level control** over what the LLM is allowed to discuss.
+
+### How It Works
+
+- **File:** `server/RUST/topics.txt`
+- **Purpose:** Define an **allowlist of topics** the model is permitted to respond to
+
+At startup, the Rust middleware:
+1. Reads `topics.txt`
+2. Injects its contents into the **system prompt**
+3. Instructs the model to **only respond to those topics**
+
+**Instruction enforced at inference time:**
+
+> “You may only answer questions related to the following topics.  \
+> If a user asks about anything else, you must state that you do not have access to that information.”
+
+### Why This Matters
+
+- Prevents topic drift and hallucination
+- Enables tightly-scoped deployments (internal tools, demos, kiosks)
+- Provides **soft guardrails** without blocking requests outright
+- Works alongside FastAPI-level moderation instead of replacing it
+- Can be modified instantly without retraining or fine-tuning
+
+This design keeps topic control **transparent, auditable, and configuration-driven**.
+
+
+
 ## Content Moderation & Refusal Logic
 
 This project implements a multi-layered safety and moderation system. Refusals happen at two distinct stages:
